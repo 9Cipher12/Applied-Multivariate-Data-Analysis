@@ -1,0 +1,416 @@
+---
+title: "Applied Multivariate Data Analysis"
+author: "Cristel Kaye Billones"
+date: "2024-09-09"
+output: pdf_document
+---
+## Formative Assessment 2
+
+Do a complete data analysis for Political Interest data set using a two-way ANOVA (2B).
+
+Null hypothesis: There is no significant interaction effect on political interest between gender and education level.
+
+### 1. Data Loading and Exploration
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(car) 
+library(multcomp)
+```
+
+```{r message=FALSE, warning=FALSE}
+library(readr)
+file_path <- file.choose()
+political_interest <- read_csv(file_path)
+head(political_interest)
+```
+
+### Check the structure of the data
+```{r}
+str(political_interest)
+```
+
+```{r}
+summary(political_interest)
+```
+## Summary of Political Interest Dataset
+
+### Gender
+There are 28 observations for Gender 1 and 30 for Gender 2, showing a balanced distribution between the two groups.
+
+### Education Level
+Each level has a similar number of observations:
+- Level 1: 19 observations
+- Level 2: 19 observations
+- Level 3: 20 observations
+
+This indicates a fairly even representation across education levels.
+
+### Political Interest
+- **Minimum**: 33
+- **Maximum**: 69
+- **1st Quartile (Q1)**: 40
+- **3rd Quartile (Q3)**: 58.75
+- **Median**: 44
+- **Mean**: 48.04
+
+The 1st Quartile (Q1) indicates that 25\% of the scores are below 40, while the 3rd Quartile (Q3) indicates that 25\% of the scores are above 58.75. The median (44) and mean (48.04) show that the central tendency of political interest is around 44, with the mean slightly higher due to some higher values.
+
+### Log of Political Interest
+- **Minimum**: 3.497
+- **Maximum**: 4.234
+- **Median**: 3.784
+- **Mean**: 3.849
+
+The log transformation scales the political interest values for better normality. This transformation can stabilize variance and make the data more suitable for statistical analysis.
+
+---
+
+These summary statistics provide a general overview of the distribution and central tendency of political interest scores and their logarithmic values, useful for further statistical analysis.
+
+
+## Convert gender and education_level to factors
+```{r}
+political_interest$gender <- as.factor(political_interest$gender)
+political_interest$education_level <- as.factor(political_interest$education_level)
+
+# Check unique levels of gender and education after conversion
+unique(political_interest$gender)
+unique(political_interest$education_level)
+```
+
+### Levene's Test for Homogeneity of Variance
+```{r}
+leveneTest(political_interest ~ gender * education_level, data = political_interest)
+```
+Levene's Test shows an F value of 2.2054 with a p-value of 0.06765. This p-value is slightly above 0.05, suggesting that the variances across groups are approximately equal, but the result is not statistically significant at the 5% level.
+`
+### Fit the two-way ANOVA model
+```{r}
+anova_model <- aov(political_interest ~ gender * education_level, data = political_interest)
+```
+# Get a summary of the ANOVA
+```{r}
+summary(anova_model)
+TukeyHSD(anova_model)
+```
+## Tukey HSD Test Results
+
+### Main Effects
+
+- **Gender**: There is no significant difference between genders (\( p = 0.187 \)), as the confidence interval includes zero.
+- **Education Level**: Significant differences between levels:
+  - Level 2 vs. Level 1: Mean difference of 5.24, \( p < 0.001 \).
+  - Level 3 vs. Level 1: Mean difference of 22.44, \( p < 0.001 \).
+  - Level 3 vs. Level 2: Mean difference of 17.20, \( p < 0.001 \).
+
+### Interaction Effects
+
+Significant interactions where the effect of education level on political interest differs by gender:
+- **Gender 2 at Education Level 1 vs. Gender 1 at Education Level 1**: No significant difference (\( p = 0.817 \)).
+- **Gender 1 at Education Level 2 vs. Gender 1 at Education Level 1**: Significant difference (\( p = 0.037 \)).
+- **Gender 2 at Education Level 2 vs. Gender 1 at Education Level 1**: Significant difference (\( p = 0.002 \)).
+- **Gender 1 at Education Level 3 vs. Gender 1 at Education Level 1**: Significant difference (\( p < 0.001 \)).
+- **Gender 2 at Education Level 3 vs. Gender 1 at Education Level 1**: Significant difference (\( p < 0.001 \)).
+- **Gender 1 at Education Level 2 vs. Gender 2 at Education Level 1**: No significant difference (\( p = 0.402 \)).
+- **Gender 1 at Education Level 3 vs. Gender 2 at Education Level 1**: Significant difference (\( p < 0.001 \)).
+- **Gender 2 at Education Level 3 vs. Gender 1 at Education Level 2**: Significant difference (\( p = 0.051 \)).
+- **Gender 1 at Education Level 3 vs. Gender 2 at Education Level 2**: Significant difference (\( p < 0.001 \)).
+- **Gender 2 at Education Level 3 vs. Gender 1 at Education Level 3**: Significant difference (\( p < 0.001 \)).
+- **Gender 2 at Education Level 1 vs. Gender 1 at Education Level 3**: Significant difference (\( p = 0.009 \)).
+
+### Summary
+
+Overall, political interest varies significantly across education levels, and there is a significant interaction effect between gender and education level.
+---
+This summary provides insights into the main and interaction effects observed in the Tukey HSD test for the two-way ANOVA, indicating how political interest differs by education level and gender.
+
+
+```{r}
+interaction.plot(political_interest$education_level, political_interest$gender, 
+                 political_interest$political_interest, 
+                 col=c("red", "blue"), lty=1:2, 
+                 xlab = "Education Level", ylab = "Political Interest", 
+                 trace.label = "Gender")
+```
+## Interaction Plot Interpretation
+
+The interaction plot displays how political interest varies with education level, differentiated by gender. Below is an interpretation based on the provided data points.
+
+### Plot Details
+
+- **X-Axis (Education Level)**: Ranges from 1 to 3, representing different levels of education.
+- **Y-Axis (Political Interest)**: Ranges from 40 to 65, representing the level of political interest.
+
+### Lines
+
+- **Red Line (Gender 1)**: Political interest values are:
+  - Education Level 1: 33
+  - Education Level 2: 43.5
+  - Education Level 3: 63
+
+- **Blue Line (Gender 2)**: Political interest values are:
+  - Education Level 1: 40
+  - Education Level 2: 45
+  - Education Level 3: 58
+
+### Meaning of the Results
+
+- **Trend with Education Level**: Political interest increases with higher education levels for both genders, suggesting that greater educational attainment is associated with higher political interest.
+
+- **Difference Between Genders**:
+  - **At Education Level 1**: Gender 2 exhibits higher political interest (40) compared to Gender 1 (33).
+  - **At Education Level 2**: Gender 2's political interest (45) is slightly higher than Gender 1's (43.5).
+  - **At Education Level 3**: Gender 1 has a higher political interest (63) compared to Gender 2 (58).
+
+- **Interaction Effect**: The lines for the two genders are not parallel and intersect, indicating an interaction effect between gender and education level:
+  - **At Education Level 3**: Gender 1 shows a significantly higher political interest compared to Gender 2.
+  - **At Education Levels 1 and 2**: The difference in political interest between the two genders is smaller compared to Education Level 3.
+
+### Summary
+
+- The **interaction** between gender and education level is evident, meaning the effect of education level on political interest differs by gender.
+- **Gender 1** shows a more pronounced increase in political interest with higher education levels compared to **Gender 2**.
+- This suggests that interventions or policies aimed at increasing political interest should consider gender differences, especially at higher education levels where the gap is more significant.
+
+---
+
+This analysis of the interaction plot provides insights into how political interest varies by education level and gender, highlighting the need for tailored approaches in addressing political engagement.
+
+```{r}
+# Diagnostic plots for the ANOVA model
+par(mfrow = c(2, 2))  # Arrange plots in a 2x2 grid
+plot(anova_model)
+```
+```{r}
+political_interest$log_interest <- log(political_interest$political_interest)
+anova_model_log <- aov(log_interest ~ gender * education_level, data = political_interest)
+summary(anova_model_log)
+```
+## Diagnostic Plots Interpretation
+
+The following diagnostic plots are commonly used to assess the validity of a linear regression model:
+
+### 1. Residuals vs Fitted (Top-Left)
+
+This plot helps check for non-linearity. The residuals (errors) should be randomly scattered around 0 without showing any clear pattern. 
+
+**Interpretation**: 
+- There is no strong pattern visible, suggesting that the linearity assumption is likely valid.
+- Some mild curvature might be present, indicating potential minor issues with the linearity assumption.
+
+### 2. Q-Q Plot (Top-Right)
+
+The Q-Q plot assesses the normality of residuals. Residuals should ideally follow the diagonal line if they are normally distributed.
+
+**Interpretation**: 
+- Most points follow the diagonal line well, indicating that the residuals are largely normally distributed.
+- There are some deviations at the tails, which suggest minor issues with normality.
+
+### 3. Scale-Location (Spread-Location) (Bottom-Left)
+
+This plot checks the homoscedasticity (constant variance) of residuals. Points should be randomly scattered around a horizontal line.
+
+**Interpretation**: 
+- The slight curve in the plot suggests there may be mild heteroscedasticity (unequal variance) present.
+
+### 4. Residuals vs Leverage (Bottom-Right)
+
+This plot helps identify influential observations. Points outside the dotted Cook's distance lines might be influential.
+
+**Interpretation**: 
+- Observation 52 appears to be influential but not dramatically so. It is advisable to further examine this observation to assess its impact on the model.
+
+### Summary
+
+Overall, the diagnostic plots indicate reasonable model fit with minor deviations. The issues observed are not severe but should be monitored:
+- **Linearity**: Generally acceptable with minor curvature.
+- **Normality**: Largely satisfied with some deviations at the extremes.
+- **Homoscedasticity**: Mild heteroscedasticity may be present.
+- **Influential Observations**: Observation 52 should be further investigated.
+
+---
+
+These diagnostics provide a comprehensive view of the model’s assumptions and potential areas for improvement.
+
+```{r}
+par(mfrow = c(2, 2))  # Arrange plots in a 2x2 grid
+plot(anova_model_log)
+```
+```{r}
+summary(anova_model_log)
+```
+## Diagnostic Plots Interpretation
+
+The code `par(mfrow = c(2, 2))` sets up the plotting area in R to display four plots in a 2x2 grid. The `plot(anova_model_log)` function then generates diagnostic plots for the fitted model, likely a linear regression model. 
+
+### Diagnostic Plots
+
+1. **Residuals vs Fitted**
+
+   This plot checks for non-linearity. The residuals should be randomly scattered around zero without showing a clear pattern.
+
+   **Interpretation**: 
+   - The residuals appear randomly scattered around 0, with no clear pattern, suggesting that the linearity assumption of the model is valid.
+
+2. **Q-Q Plot**
+
+   This plot assesses the normality of residuals. Residuals should follow the diagonal line if they are normally distributed.
+
+   **Interpretation**: 
+   - Most points follow the diagonal line well, indicating that the residuals are approximately normally distributed.
+   - There are some deviations at the tails (e.g., points 38 and 57), suggesting minor departures from normality.
+
+3. **Scale-Location Plot**
+
+   This plot tests the homoscedasticity assumption, checking for constant variance of residuals.
+
+   **Interpretation**: 
+   - The plot shows a slightly curved red line. Ideally, a flat line indicates equal variance. The mild curve suggests that while heteroscedasticity is present, it is not a major issue.
+
+4. **Residuals vs Leverage**
+
+   This plot identifies influential observations. Points outside Cook’s distance lines might be influential.
+
+   **Interpretation**: 
+   - Observations 52, 57, and 38 are highlighted as potentially influential, with observation 52 being the most significant.
+
+### Summary
+
+- The model generally fits well based on the diagnostic plots:
+  - **Linearity**: No significant deviations, indicating a valid linearity assumption.
+  - **Normality**: Residuals are mostly normally distributed, with minor deviations at the tails.
+  - **Homoscedasticity**: Mild heteroscedasticity is present but not severe.
+  - **Influential Points**: Observations 52, 57, and 38 should be examined more closely to ensure they are not unduly affecting the model's results.
+
+---
+
+These diagnostics provide a comprehensive view of the model’s assumptions and highlight areas that may require further investigation.'
+
+
+```{r}
+cat("Interpretation of Hypothesis:\n",
+    "Based on the results of your log-transformed two-way ANOVA model:\n\n",
+    "Null Hypothesis: There is no significant interaction effect on political interest between gender and education level.\n",
+    "Alternative Hypothesis: There is a significant interaction effect on political interest between gender and education level.\n\n",
+    "From the summary results:\n\n",
+    "The p-value for the interaction effect (gender:education_level) is 0.00395, which is less than 0.05.\n\n",
+    "Conclusion:\n",
+    "Since the p-value for the interaction effect is significant, you reject the null hypothesis. This indicates that there is a significant interaction between gender and education level in affecting political interest.\n")
+```
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+# Load the emmeans library
+library(emmeans)
+```
+
+```{r}
+# Post-hoc pairwise comparisons for the original ANOVA model
+emmeans_original <- emmeans(anova_model, ~ gender * education_level)
+pairs_original <- pairs(emmeans_original, adjust = "bonferroni")
+print(pairs_original)
+```
+
+```{r}
+# Post-hoc pairwise comparisons for the log-transformed ANOVA model
+emmeans_log <- emmeans(anova_model_log, ~ gender * education_level)
+pairs_log <- pairs(emmeans_log, adjust = "bonferroni")
+print(pairs_log)
+```
+```{r}
+# Generate plots for post-hoc comparisons (optional)
+ggplot(political_interest, aes(x = education_level, y = political_interest, color = gender)) +
+  geom_boxplot() +
+  labs(title = "Political Interest by Gender and Education Level")
+```
+
+
+Using box plot, we get a similar result to the interaction plot. The female has a mean of 33.5 and ranges around 30 to 35 while the male has a mean around 39 and ranges around 38 to 43 in education level 1.In education level 2, the female has a mean 45 and ranges around 43 to 47 while the male has a mean of 47 and ranges around 45 to 49. In level 3, the female has a mean of 65 and ranges around 63 to 67 while the male has a mean of 58 and ranges between 54 to 63. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
